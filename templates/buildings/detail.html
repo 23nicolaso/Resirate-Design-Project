@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>{{ building.address }}</h1>
+  <p>{{ building.borough }}, NY {{ building.zip_code }}</p>
+
+  <section class="card">
+    <div class="card-body">
+      <h2 class="h5">Resident ratings</h2>
+      <p class="mb-0">Insufficient rating information.</p>
+    </div>
+  </section>
+
+  <a class="btn btn-outline-secondary mt-3"
+     href="{% url 'buildings:search' %}">
+    Back to search
+  </a>
+{% endblock %}

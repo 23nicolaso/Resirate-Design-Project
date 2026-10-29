@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Find a building</h1>
+
+  <form method="get" class="mb-4">
+    <label for="address" class="form-label">
+      NYC street address
+    </label>
+
+    <div class="input-group">
+      <input
+        id="address"
+        name="q"
+        value="{{ query }}"
+        class="form-control"
+        required
+      >
+      <button class="btn btn-primary" type="submit">
+        Search
+      </button>
+    </div>
+  </form>
+
+  {% if query %}
+    <ul class="list-group">
+      {% for building in buildings %}
+        <li class="list-group-item">
+          <a href="{% url 'buildings:detail' building.pk %}">
+            {{ building.address }}, {{ building.borough }}
+          </a>
+        </li>
+      {% empty %}
+        <li class="list-group-item">No results found.</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
