@@ -88,3 +88,38 @@ Commit the generated migration files so teammates can apply the same changes. Us
 ## Before committing
 
 Run `docker compose exec web python manage.py check` and `docker compose exec web python manage.py test`. Commit source code and migrations. Keep `.env`, `.venv/`, and private credentials out of Git. The credentials in Compose and Django's development server are for local development only.
+
+## Backend route scaffold
+
+Shared custom error responses belong in `config/errors.py`. Views import `not_implemented` from that module for unfinished features.
+
+Search and building profiles already have basic implementations. All other routes below are placeholders returning HTTP 501 with a feature description. They do not authenticate, authorize, query, or save anything yet. Standard Django CSRF protection still applies to POST requests. When implementing forms, include `{% csrf_token %}` and add login/ownership/moderation permission checks before accessing data.
+
+These are Django page/form routes: GET displays information or a form; POST performs changes. Deletion GET requests will only display confirmation when implemented. Registration/login are public; account/contribution/reporting actions require login; moderation queue/detail/resolution require explicit moderation permission.
+
+| Path | Methods | Purpose |
+| --- | --- | --- |
+| `/` | GET | Building address search (basic implementation) |
+| `/buildings/<pk>/` | GET | Building profile (basic implementation) |
+| `/accounts/register/` | GET, POST | Registration |
+| `/accounts/login/` | GET, POST | Login |
+| `/accounts/logout/` | POST | Logout |
+| `/accounts/` | GET | Account dashboard |
+| `/accounts/reviews/` | GET | Own reviews |
+| `/accounts/issues/` | GET | Own issue reports |
+| `/buildings/<building_pk>/reviews/new/` | GET, POST | Submit review and category ratings |
+| `/reviews/<pk>/edit/` | GET, POST | Edit own review and ratings |
+| `/reviews/<pk>/delete/` | GET, POST | Confirm/delete own review |
+| `/buildings/<building_pk>/issues/new/` | GET, POST | Submit issue report |
+| `/issues/<pk>/edit/` | GET, POST | Edit own issue report |
+| `/issues/<pk>/delete/` | GET, POST | Confirm/delete own issue report |
+| `/moderation/reviews/<pk>/report/` | GET, POST | Flag a review |
+| `/moderation/issues/<pk>/report/` | GET, POST | Flag an issue report |
+| `/moderation/` | GET | Flagged-content queue |
+| `/moderation/reports/<pk>/` | GET | Flagged-content details |
+| `/moderation/reports/<pk>/resolve/` | POST | Keep/remove content and resolve flags |
+| `/admin/` | Django admin | Existing administration interface |
+
+Profile pages will include public reviews, ratings, and dated issue reports; those do not need separate routes initially. Rating updates belong to review submissions, and aggregate calculation belongs in backend logic. External public-data integration remains optional and has no public mutation route.
+
+`reviews/models.py` outlines Review, RatingCategory, Rating, and IssueReport. `moderation/models.py` outlines ContentReport and ModerationAction. These are abstract placeholders: they have no tables, fields, or persistence behavior yet. When implementing these models, add their fields and remove `abstract = True` before generating migrations. The existing User and Building models remain concrete. Decide the rating scale, aggregate calculation, category requirements, and review-per-user/building policy before implementing those models.
