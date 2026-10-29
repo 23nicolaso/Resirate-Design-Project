@@ -2,7 +2,29 @@
 
 Residential building reviews for NYC. Uses Django, PostgreSQL, and HTML templates styled with Bootstrap. Django and PostgreSQL run in Docker for local development.
 
+## Install tools (first time only)
+
+Skip anything you already have installed.
+
+1. Install [Git](https://git-scm.com/install/windows) using the default installer options. It lets you clone the repository and share changes.
+2. Install [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/), using the WSL 2 backend. If Docker asks for WSL installation, open PowerShell as administrator, run `wsl --install`, and restart Windows if prompted. If WSL needs updating, run `wsl --update`. Start Docker Desktop and wait until its engine is running; use Linux containers for this project.
+3. Install an editor such as [VS Code](https://code.visualstudio.com/download), or use your existing editor. In VS Code, choose File > Open Folder and select the cloned project folder.
+4. Reopen your terminal after installation and check:
+
+```powershell
+git --version
+docker --version
+docker compose version
+docker info
+```
+
+The first three commands should print versions; `docker info` should show server information without a connection error. Docker Desktop includes Compose. Python, Django, PostgreSQL, and their dependencies are installed inside the containers; you do not need separate local installations. Bootstrap CSS is loaded by the page from a CDN.
+
+To get the code, copy this repository's clone URL from GitHub's Code button and run `git clone <repository-url>` with the actual URL, then open the downloaded folder. Continue with Run locally below.
+
 ## Run locally
+
+Both frontend and backend developers use this same Docker setup. Clone the repository with Git, open it in your editor, and run all commands below from the folder containing `compose.yaml` and `manage.py`.
 
 Install and start Docker Desktop. From the project folder, run:
 
@@ -21,6 +43,43 @@ docker compose exec web python manage.py createsuperuser
 For later sessions, run `docker compose up -d`. Run `docker compose up --build -d` after dependency or Dockerfile changes. Python changes reload automatically; refresh the browser after template or static-file changes.
 
 View startup errors with `docker compose logs -f web`. Use `docker compose stop` to stop both services. The Docker volume keeps database data between restarts. Each teammate has their own database; Git does not share its contents. The website uses port 8001 on your computer to avoid conflicts with a local Django server on port 8000.
+
+## Frontend workflow
+
+1. Complete Run locally above. Open http://127.0.0.1:8001/ in your browser. There is no separate frontend server or npm install; Django serves the HTML pages.
+2. Edit `templates/base.html` for shared navigation/layout, `templates/buildings/search.html` for search, and `templates/buildings/detail.html` for the building profile. New pages go under `templates/<app>/`.
+3. Create CSS files under `static/css/` and JavaScript files under `static/js/` as needed. Bootstrap CSS is already included in `base.html`. Load your own files with Django's `{% static %}` tag as shown below.
+4. Save changes and refresh the browser. Open pages through Django's URL, rather than opening HTML files directly or using VS Code Live Server, so template tags render correctly.
+5. To see sample building data, create a superuser using the command above and add buildings through `/admin/`. Your local database starts independently of other teammates' databases.
+6. For a new page, agree with the backend developer on its route name, template filename, context variables, form fields, and error messages. Use the route/page example below to connect a template. Most existing routes still return 501; creating a template alone will not make those views render it. Have the backend developer connect the view when the page is ready, or agree on a temporary GET-only preview using sample data.
+7. Before submitting changes, check desktop/mobile layouts, keyboard navigation, labels, and empty/error states. Commit templates, CSS, and JavaScript on your feature branch and open a pull request.
+
+Use named links such as `{% url 'accounts:login' %}`. Forms that submit changes use POST and include `{% csrf_token %}`. Check with the backend developer before choosing field names; the view/form must accept those same names.
+
+## Backend workflow
+
+1. Complete Run locally above. Run Django management commands inside the `web` container with `docker compose exec web python manage.py ...`.
+2. Find the feature's route in its app's `urls.py` and its handler in `views.py`. Apps are `accounts`, `buildings`, `reviews`, and `moderation`; `config/urls.py` connects them. The route inventory below lists the existing scaffold.
+3. Agree on the template/context/form contract with the frontend developer. Implement the view, validation, and database operations, replacing its `not_implemented(...)` response. Put shared custom error responses in `config/errors.py`.
+4. Add login, ownership, and moderation permission checks as appropriate. Keep GET requests read-only; perform mutations through POST. Keep private account data out of public responses.
+5. When changing models, follow Change database tables below and commit the generated migrations. Review and moderation models are currently abstract outlines; they must have fields and constraints before becoming concrete models. Use `settings.AUTH_USER_MODEL` for relationships to users.
+6. If adding a Python dependency, add a pinned compatible version to `requirements.txt`, then run `docker compose up --build -d`.
+7. Add tests for the feature and run the commands below before opening a pull request. Update `config/tests.py` as routes become implemented: it currently expects scaffold routes to return 501. Replace those expectations with tests for real behavior and permissions.
+
+```powershell
+docker compose exec web python manage.py check
+docker compose exec web python manage.py makemigrations --check --dry-run
+docker compose exec web python manage.py test
+```
+
+After either team pulls changes, run:
+
+```powershell
+docker compose up --build -d
+docker compose exec web python manage.py migrate
+```
+
+This rebuilds dependencies if needed and applies new migrations even if the web container was already running. Existing local database records remain in the Docker volume.
 
 ## Add a route and frontend page
 
