@@ -23,6 +23,19 @@
   </form>
 
   {% if query %}
+    <h2>NYC address matches</h2>
+    {% if search_error %}
+      <p role="alert" class="alert alert-warning">{{ search_error }}</p>
+    {% else %}
+      <ul class="list-group mb-4">
+        {% for address in addresses %}
+          <li class="list-group-item">{{ address.label }}</li>
+        {% empty %}
+          <li class="list-group-item">No NYC addresses found. Try including the borough.</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <h2>Buildings on Resirate</h2>
     <ul class="list-group">
       {% for building in buildings %}
         <li class="list-group-item">

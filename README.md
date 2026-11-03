@@ -182,3 +182,26 @@ These are Django page/form routes: GET displays information or a form; POST perf
 Profile pages will include public reviews, ratings, and dated issue reports; those do not need separate routes initially. Rating updates belong to review submissions, and aggregate calculation belongs in backend logic. External public-data integration remains optional and has no public mutation route.
 
 `reviews/models.py` outlines Review, RatingCategory, Rating, and IssueReport. `moderation/models.py` outlines ContentReport and ModerationAction. These are abstract placeholders: they have no tables, fields, or persistence behavior yet. When implementing these models, add their fields and remove `abstract = True` before generating migrations. The existing User and Building models remain concrete. Decide the rating scale, aggregate calculation, category requirements, and review-per-user/building policy before implementing those models.
+
+
+## Python linting
+
+Install the development tools in the project virtual environment:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+```
+
+Check Python code:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check .
+```
+
+Apply safe automatic fixes:
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check . --fix
+```
+
+Ruff checks common Python errors, unused imports, and import ordering.
