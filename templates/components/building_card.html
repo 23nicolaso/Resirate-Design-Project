@@ -1,0 +1,16 @@
+{% comment %}
+Building summary card.
+Usage: {% include "components/building_card.html" with building=building %}
+{% endcomment %}
+<article class="card building-card h-100">
+  <div class="card-body">
+    <h3 class="h6 card-title mb-1">
+      <a class="stretched-link text-decoration-none" href="{% url 'buildings:detail' building.pk %}">
+        {{ building.address }}
+      </a>
+    </h3>
+    <p class="card-text text-body-secondary small mb-0">
+      {{ building.borough }}{% if building.zip_code %}, NY {{ building.zip_code }}{% endif %}
+    </p>
+  </div>
+</article>

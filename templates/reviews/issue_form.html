@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{% if issue %}Edit issue report{% else %}Report an issue{% endif %}{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'buildings:detail' building.pk %}">{{ building.address }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{% if issue %}Edit issue report{% else %}Report an issue{% endif %}</li>
+        </ol>
+      </nav>
+
+      <h1 class="h3">{% if issue %}Edit issue report{% else %}Report an issue{% endif %}</h1>
+      <p class="text-body-secondary">{{ building.address }}, {{ building.borough }}</p>
+
+      <form method="post" class="rr-form card card-body"
+            action="{% if issue %}{% url 'reviews:issue_edit' issue.pk %}{% else %}{% url 'reviews:issue_create' building.pk %}{% endif %}">
+        {% csrf_token %}
+        {% include "components/form_errors.html" with form=form %}
+        {% include "components/form_field.html" with field=form.title %}
+        {% include "components/form_field.html" with field=form.description %}
+        <div class="d-flex flex-wrap gap-2">
+          <button type="submit" class="btn btn-primary">{% if issue %}Save changes{% else %}Submit report{% endif %}</button>
+          <a class="btn btn-outline-secondary" href="{% url 'buildings:detail' building.pk %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
