@@ -1,0 +1,35 @@
+{% comment %}
+Address search bar with live NYC address suggestions.
+Usage: {% include "components/search_bar.html" with query=query %}
+Needs static/js/address-search.js on the page (block extra_js).
+Without JavaScript it still submits a normal GET search.
+{% endcomment %}
+<form method="get" action="{% url 'buildings:search' %}" class="address-search mb-4" role="search"
+      data-address-search
+      data-suggest-url="{% url 'buildings:address_suggestions' %}"
+      data-resolve-url="{% url 'buildings:resolve_address' %}">
+  {% csrf_token %}
+  <label for="address" class="form-label">NYC street address</label>
+  <div class="input-group">
+    <input
+      id="address"
+      name="q"
+      type="search"
+      value="{{ query|default:'' }}"
+      class="form-control"
+      placeholder="e.g. 120 Broadway, Manhattan"
+      autocomplete="off"
+      maxlength="255"
+      required
+      role="combobox"
+      aria-autocomplete="list"
+      aria-expanded="false"
+      aria-controls="address-suggestions"
+      aria-describedby="address-help"
+    >
+    <button class="btn btn-primary" type="submit">Search</button>
+  </div>
+  <div id="address-help" class="form-text">Start typing and pick an address to open its building page.</div>
+  <ul id="address-suggestions" class="address-suggestions list-group d-none" role="listbox" aria-label="Address suggestions"></ul>
+  <p class="address-search-status text-danger small mt-2 mb-0 d-none" role="alert" data-address-status></p>
+</form>

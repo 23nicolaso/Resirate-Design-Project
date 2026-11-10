@@ -1,0 +1,68 @@
+/* ResiRate shared styles. Bootstrap 5 is loaded first; keep overrides small. */
+
+:root {
+  --rr-star: #f5a623;
+  --rr-star-empty: #d0d4d9;
+}
+
+.site-footer {
+  font-size: 0.875rem;
+}
+
+/* Rating stars (components/rating_display.html) */
+.rating-stars {
+  color: var(--rr-star-empty);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.rating-stars .is-filled {
+  color: var(--rr-star);
+}
+
+/* Address autocomplete (components/search_bar.html) */
+.address-search {
+  position: relative;
+}
+.address-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  max-height: 20rem;
+  overflow-y: auto;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.address-suggestions .list-group-item.active {
+  z-index: auto;
+}
+
+/* Building cards (components/building_card.html) */
+.building-card {
+  transition: box-shadow 0.15s ease-in-out;
+}
+.building-card:hover,
+.building-card:focus-within {
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+}
+
+/* Score picker on the review form */
+.score-picker .btn-check + .btn {
+  min-width: 2.75rem;
+}
+
+@media (max-width: 575.98px) {
+  .score-picker .btn-check + .btn {
+    min-width: 2.25rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* Fallback so Django form widgets look right before/without JS. */
+.rr-form .rr-field input:not([type=checkbox]):not([type=radio]):not([type=hidden]),
+.rr-form .rr-field select,
+.rr-form .rr-field textarea {
+  display: block;
+  width: 100%;
+}

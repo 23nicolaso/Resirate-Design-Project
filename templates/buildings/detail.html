@@ -1,18 +1,109 @@
 {% extends "base.html" %}
 
+{% block title %}{{ building.address }}{% endblock %}
+
 {% block content %}
-  <h1>{{ building.address }}</h1>
-  <p>{{ building.borough }}, NY {{ building.zip_code }}</p>
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'buildings:search' %}">Search</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ building.address }}</li>
+    </ol>
+  </nav>
 
-  <section class="card">
-    <div class="card-body">
-      <h2 class="h5">Resident ratings</h2>
-      <p class="mb-0">Insufficient rating information.</p>
+  <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+    <div>
+      <h1 class="mb-1">{{ building.address }}</h1>
+      <p class="text-body-secondary mb-0">{{ building.borough }}, NY {{ building.zip_code }}</p>
     </div>
-  </section>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-primary" href="{% url 'reviews:review_create' building.pk %}">Write a review</a>
+      <a class="btn btn-outline-secondary" href="{% url 'reviews:issue_create' building.pk %}">Report an issue</a>
+    </div>
+  </header>
 
-  <a class="btn btn-outline-secondary mt-3"
-     href="{% url 'buildings:search' %}">
-    Back to search
-  </a>
+  {% with reviews=building.reviews.all issues=building.issue_reports.all %}
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <section class="card" aria-labelledby="ratings-heading">
+          <div class="card-body">
+            <h2 id="ratings-heading" class="h5">Resident ratings</h2>
+            {% if reviews %}
+              {% if average_rating %}
+                <p class="mb-2">
+                  {% include "components/rating_display.html" with score=average_rating label="Overall" %}
+                </p>
+              {% endif %}
+              <p class="small text-body-secondary mb-0">
+                Based on {{ reviews|length }} review{{ reviews|length|pluralize }}.
+              </p>
+            {% else %}
+              <p class="mb-0">Insufficient rating information.</p>
+            {% endif %}
+          </div>
+        </section>
+      </div>
+
+      <div class="col-lg-8">
+        <section class="mb-4" aria-labelledby="reviews-heading">
+          <h2 id="reviews-heading" class="h4">Reviews</h2>
+          {% for review in reviews %}
+            <article class="card mb-3">
+              <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                  {% include "components/rating_display.html" with score=review.overall_rating %}
+                  <small class="text-body-secondary">
+                    {{ review.author.username }} · <time datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:"M j, Y" }}</time>
+                  </small>
+                </div>
+                {% if review.body %}<p class="card-text">{{ review.body|linebreaksbr }}</p>{% endif %}
+                <ul class="list-inline small mb-0">
+                  {% for rating in review.ratings.all %}
+                    <li class="list-inline-item me-3">{{ rating.category.label }}: <strong>{{ rating.score }}</strong>/5</li>
+                  {% endfor %}
+                </ul>
+                {% if user == review.author %}
+                  <div class="mt-2 d-flex gap-2">
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'reviews:review_edit' review.pk %}">Edit</a>
+                    <a class="btn btn-sm btn-outline-danger" href="{% url 'reviews:review_delete' review.pk %}">Delete</a>
+                  </div>
+                {% endif %}
+              </div>
+            </article>
+          {% empty %}
+            {% include "components/empty_state.html" with message="No reviews yet. Be the first to review this building." %}
+          {% endfor %}
+        </section>
+
+        <section aria-labelledby="issues-heading">
+          <h2 id="issues-heading" class="h4">Reported issues</h2>
+          {% if issues %}
+            <ul class="list-group">
+              {% for issue in issues %}
+                <li class="list-group-item">
+                  <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <strong>{{ issue.title }}</strong>
+                    <span class="badge {% if issue.status == 'open' %}text-bg-warning{% else %}text-bg-success{% endif %} align-self-start">
+                      {{ issue.get_status_display }}
+                    </span>
+                  </div>
+                  <p class="mb-1 mt-1">{{ issue.description|linebreaksbr }}</p>
+                  <small class="text-body-secondary">
+                    Reported <time datetime="{{ issue.created_at|date:'c' }}">{{ issue.created_at|date:"M j, Y" }}</time>
+                  </small>
+                  {% if user == issue.reporter %}
+                    <div class="mt-2 d-flex gap-2">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'reviews:issue_edit' issue.pk %}">Edit</a>
+                      <a class="btn btn-sm btn-outline-danger" href="{% url 'reviews:issue_delete' issue.pk %}">Delete</a>
+                    </div>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            {% include "components/empty_state.html" with message="No issues have been reported for this building." %}
+          {% endif %}
+        </section>
+      </div>
+    </div>
+  {% endwith %}
 {% endblock %}

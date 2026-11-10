@@ -1,51 +1,58 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if query %}Search: {{ query }}{% else %}Find a building{% endif %}{% endblock %}
 
 {% block content %}
-  <h1>Find a building</h1>
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="mb-3">Find a building</h1>
+      <p class="text-body-secondary">Search any NYC residential address to read and share resident reviews.</p>
 
-  <form method="get" class="mb-4">
-    <label for="address" class="form-label">
-      NYC street address
-    </label>
+      {% include "components/search_bar.html" with query=query %}
 
-    <div class="input-group">
-      <input
-        id="address"
-        name="q"
-        value="{{ query }}"
-        class="form-control"
-        required
-      >
-      <button class="btn btn-primary" type="submit">
-        Search
-      </button>
+      {% if query %}
+        <section class="mb-4" aria-labelledby="address-matches-heading">
+          <h2 id="address-matches-heading" class="h5">NYC address matches</h2>
+          {% if search_error %}
+            <p role="alert" class="alert alert-warning">{{ search_error }}</p>
+          {% else %}
+            <ul class="list-group">
+              {% for address in addresses %}
+                <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                  <span>{{ address.label }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0"
+                          data-open-address="{{ address.label }}">
+                    View building
+                  </button>
+                </li>
+              {% empty %}
+                <li class="list-group-item">No NYC addresses found. Try including the borough.</li>
+              {% endfor %}
+            </ul>
+            <p class="text-danger small mt-2 d-none" role="alert" data-results-status></p>
+          {% endif %}
+        </section>
+
+        <section aria-labelledby="buildings-heading">
+          <h2 id="buildings-heading" class="h5">Buildings on ResiRate</h2>
+          {% if buildings %}
+            <div class="row row-cols-1 row-cols-sm-2 g-3">
+              {% for building in buildings %}
+                <div class="col">
+                  {% include "components/building_card.html" with building=building %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            {% include "components/empty_state.html" with message="No results found." %}
+          {% endif %}
+        </section>
+      {% endif %}
     </div>
-  </form>
+  </div>
+{% endblock %}
 
-  {% if query %}
-    <h2>NYC address matches</h2>
-    {% if search_error %}
-      <p role="alert" class="alert alert-warning">{{ search_error }}</p>
-    {% else %}
-      <ul class="list-group mb-4">
-        {% for address in addresses %}
-          <li class="list-group-item">{{ address.label }}</li>
-        {% empty %}
-          <li class="list-group-item">No NYC addresses found. Try including the borough.</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-    <h2>Buildings on Resirate</h2>
-    <ul class="list-group">
-      {% for building in buildings %}
-        <li class="list-group-item">
-          <a href="{% url 'buildings:detail' building.pk %}">
-            {{ building.address }}, {{ building.borough }}
-          </a>
-        </li>
-      {% empty %}
-        <li class="list-group-item">No results found.</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+{% block extra_js %}
+  <script src="{% static 'js/address-search.js' %}" defer></script>
 {% endblock %}

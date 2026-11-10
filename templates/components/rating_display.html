@@ -1,0 +1,15 @@
+{% comment %}
+Shows a 1-5 score as stars plus the number.
+Usage: {% include "components/rating_display.html" with score=review.overall_rating %}
+Optional: label="Overall" small=True
+{% endcomment %}
+{% if score %}
+  <span class="rating-display d-inline-flex align-items-center gap-1{% if small %} small{% endif %}">
+    {% if label %}<span class="text-body-secondary">{{ label }}</span>{% endif %}
+    <span class="rating-stars" aria-hidden="true">{% for i in "12345" %}<span class="{% if i|add:0 <= score|floatformat:0|add:0 %}is-filled{% endif %}">&#9733;</span>{% endfor %}</span>
+    <span class="fw-semibold">{{ score|floatformat:1 }}</span>
+    <span class="visually-hidden">out of 5</span>
+  </span>
+{% else %}
+  <span class="text-body-secondary{% if small %} small{% endif %}">{% if label %}{{ label }}: {% endif %}No rating yet</span>
+{% endif %}

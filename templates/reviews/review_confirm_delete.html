@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Delete review{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <h1 class="h3">Delete your review?</h1>
+      <p>Your review of <strong>{{ review.building.address }}</strong> and its ratings will be permanently removed.</p>
+      <form method="post" action="{% url 'reviews:review_delete' review.pk %}" class="d-flex flex-wrap gap-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete review</button>
+        <a class="btn btn-outline-secondary" href="{% url 'buildings:detail' review.building.pk %}">Cancel</a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

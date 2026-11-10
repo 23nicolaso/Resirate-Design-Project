@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{% if review %}Edit review{% else %}Write a review{% endif %}{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'buildings:detail' building.pk %}">{{ building.address }}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{% if review %}Edit review{% else %}Write a review{% endif %}</li>
+        </ol>
+      </nav>
+
+      <h1 class="h3">{% if review %}Edit your review{% else %}Write a review{% endif %}</h1>
+      <p class="text-body-secondary">{{ building.address }}, {{ building.borough }}</p>
+
+      <form method="post" class="rr-form card card-body"
+            action="{% if review %}{% url 'reviews:review_edit' review.pk %}{% else %}{% url 'reviews:review_create' building.pk %}{% endif %}">
+        {% csrf_token %}
+        {% include "components/form_errors.html" with form=form %}
+
+        <fieldset class="mb-4">
+          <legend class="h5">Ratings</legend>
+          <p class="small text-body-secondary">Rate every category from 1 (very poor) to 5 (excellent).</p>
+          {{ ratings_formset.management_form }}
+          {% for error in ratings_formset.non_form_errors %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+          {% endfor %}
+          {% for rating_form in ratings_formset %}
+            {{ rating_form.category.as_hidden }}
+            <div class="mb-3">
+              {% for category in rating_form.category.field.queryset %}
+                {% if category.pk|stringformat:"s" == rating_form.category.value|stringformat:"s" %}
+                  <div class="form-label mb-1" id="{{ rating_form.prefix }}-label">{{ category.label }}</div>
+                {% endif %}
+              {% endfor %}
+              <div class="score-picker btn-group flex-wrap" role="radiogroup" aria-labelledby="{{ rating_form.prefix }}-label">
+                {% for n in "12345" %}
+                  <input type="radio" class="btn-check" name="{{ rating_form.score.html_name }}"
+                         id="{{ rating_form.prefix }}-score-{{ n }}" value="{{ n }}" autocomplete="off" required
+                         {% if rating_form.score.value|stringformat:"s" == n %}checked{% endif %}>
+                  <label class="btn btn-outline-primary" for="{{ rating_form.prefix }}-score-{{ n }}">{{ n }}</label>
+                {% endfor %}
+              </div>
+              {% for error in rating_form.score.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </fieldset>
+
+        {% include "components/form_field.html" with field=form.body %}
+
+        <div class="d-flex flex-wrap gap-2">
+          <button type="submit" class="btn btn-primary">{% if review %}Save changes{% else %}Submit review{% endif %}</button>
+          <a class="btn btn-outline-secondary" href="{% url 'buildings:detail' building.pk %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
